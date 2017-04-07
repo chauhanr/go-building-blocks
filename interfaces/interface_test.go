@@ -28,3 +28,29 @@ func TestShaperInterfaceTypes(t *testing.T) {
 		}
 	}
 }
+
+var classifierTests = []struct {
+	arguments []interface{}
+	expected  []string
+}{
+	{[]interface{}{13, -14.4, "Belgrade", complex(1, 3), nil}, []string{"int", "float", "string", "undefined", "nil"}},
+	{[]interface{}{false, true, "Myth", Square{}, "mint"}, []string{"bool", "bool", "string", "undefined", "string"}},
+}
+
+func TestClassiferFunc(t *testing.T) {
+	for _, testCase := range classifierTests {
+		results := Classifier(testCase.arguments...)
+		//log.Printf("Length of input args : %d \n", len(testCase.arguments))
+		//log.Printf("Length of results : %d \n", len(results))
+		args := testCase.expected
+		if len(results) != len(args) {
+			t.Errorf("The input arguments are not equal to the output results length\n")
+		} else {
+			for i := 0; i < len(args); i++ {
+				if args[i] != results[i] {
+					t.Errorf("Expected type %s but found type %s \n", args[i], results[i])
+				}
+			}
+		}
+	}
+}
