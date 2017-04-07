@@ -44,19 +44,16 @@ func Classifier(items ...interface{}) []string {
 		case bool:
 			interTypes[i] = "bool"
 		case float32, float64:
-			//log.Printf("setting the float item at index: %d \n", i)
 			interTypes[i] = "float"
 		case int, int64:
-			//log.Printf("setting the int item at index: %d \n", i)
 			interTypes[i] = "int"
 		case nil:
-			//log.Printf("setting the nil item at index: %d \n", i)
 			interTypes[i] = "nil"
 		case string:
-			//log.Printf("setting the string item at index: %d \n", i)
 			interTypes[i] = "string"
+		case *Square:
+			interTypes[i] = "Square"
 		default:
-			//log.Printf("setting the undefined item at index: %d \n", i)
 			interTypes[i] = "undefined"
 		}
 	}

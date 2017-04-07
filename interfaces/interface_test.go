@@ -34,7 +34,7 @@ var classifierTests = []struct {
 	expected  []string
 }{
 	{[]interface{}{13, -14.4, "Belgrade", complex(1, 3), nil}, []string{"int", "float", "string", "undefined", "nil"}},
-	{[]interface{}{false, true, "Myth", Square{}, "mint"}, []string{"bool", "bool", "string", "undefined", "string"}},
+	{[]interface{}{false, true, "Myth", new(Square), "mint"}, []string{"bool", "bool", "string", "Square", "string"}},
 }
 
 func TestClassiferFunc(t *testing.T) {
