@@ -4,12 +4,14 @@ import "strings"
 
 // Person struct with last and first name as the attributes.
 type Person struct {
-	firstName string
-	lastName  string
+	FirstName   string
+	LastName    string
+	PhoneNumber string
+	Age         int
 }
 
 // ToUpper method will convert the first and last names to upper values.
 func (person *Person) ToUpper() {
-	person.firstName = strings.ToUpper(person.firstName)
-	person.lastName = strings.ToUpper(person.lastName)
+	person.FirstName = strings.ToUpper(person.FirstName)
+	person.LastName = strings.ToUpper(person.LastName)
 }

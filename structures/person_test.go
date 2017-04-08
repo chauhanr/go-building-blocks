@@ -15,10 +15,10 @@ var persons = []struct {
 func TestPersonToUpperFunc(t *testing.T) {
 
 	for _, person := range persons {
-		p := Person{person.firstName, person.lastName}
+		p := Person{person.firstName, person.lastName, "8800439546", 37}
 		p.ToUpper()
-		if p.firstName != person.expectedFName || p.lastName != person.expectedLName {
-			t.Errorf("Expected values (%s, %s) but received (%s, %s)", person.expectedFName, person.expectedLName, p.firstName, p.lastName)
+		if p.FirstName != person.expectedFName || p.LastName != person.expectedLName {
+			t.Errorf("Expected values (%s, %s) but received (%s, %s)", person.expectedFName, person.expectedLName, p.FirstName, p.LastName)
 		}
 	}
 }
