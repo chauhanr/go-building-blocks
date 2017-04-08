@@ -54,3 +54,19 @@ func TestClassiferFunc(t *testing.T) {
 		}
 	}
 }
+
+func TestEmptyInterface(t *testing.T) {
+	var spl specialString = "Ritesh"
+	results := Classifier(spl)
+
+	if len(results) != 1 {
+		t.Errorf("The input arguments are not equal to the output results length\n")
+	} else {
+		for i := 0; i < len(results); i++ {
+			if "string" != results[i] {
+				t.Errorf("Expected type %s but found type %s \n", "string", results[i])
+			}
+		}
+	}
+
+}

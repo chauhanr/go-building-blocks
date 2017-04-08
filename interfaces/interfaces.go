@@ -34,6 +34,8 @@ func (s *Square) Area() float32 {
 	return s.side * s.side
 }
 
+type specialString string
+
 // Classifier function will return the type of the interface.
 func Classifier(items ...interface{}) []string {
 	length := len(items)
@@ -53,6 +55,8 @@ func Classifier(items ...interface{}) []string {
 			interTypes[i] = "string"
 		case *Square:
 			interTypes[i] = "Square"
+		case specialString:
+			interTypes[i] = "string"
 		default:
 			interTypes[i] = "undefined"
 		}
