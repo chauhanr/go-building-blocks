@@ -65,4 +65,4 @@ func Min(data Miner) Element{
 }
 ```
 
-This is an important pattern where we are trying to abstract an algorithm from the data type
+This is an important pattern where we are trying to abstract an algorithm from the data type. This will be important pattern when we implement data structures like Tree, Stacks, Linked Lists and Graph. 
