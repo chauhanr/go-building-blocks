@@ -21,7 +21,9 @@ func TestRunGoRoutines(t *testing.T) {
 
 	for i, city := range cities.cities {
 		if city != cityResult[i] {
-			t.Logf("Expected %s and received %s ", cityResult[i], city)
+			t.Errorf("Expected %s and received %s \n", cityResult[i], city)
+		} else {
+			t.Logf("Capital : %s\n", city)
 		}
 	}
 }
