@@ -41,3 +41,83 @@ func TestUnbufferedChannelPattern(t *testing.T) {
 		}
 	}
 }
+
+/**
+The async channel with buffer differs from the unbuffered channel above
+w.r.t to a channel size. This makes the channel non blocking until the buffer
+size is breached upon which the blocking starts so in the example below if the channel
+size is greater or equal to than the cityResult variable the sendData function can be
+called from the main routine as the channel does not block.
+
+If the buf size >= 5 then the test works but as soon as buf < 5 then the program fails
+with a panic as the main routine blocks and does not allow the later steps to work.
+the receiver however will always have to be in its own routine as it blocks the channel.
+*/
+func TestAsyncChannelsWithBufferPattern(t *testing.T) {
+	buf := 6
+	ch := make(chan string, buf)
+	cities := CityStruct{}
+
+	/*
+		the following line can run in the main routine until
+		the channel size (buf) is >= len(cityResult)
+	*/
+	sendData(ch, cityResult)
+	go getData(ch, &cities)
+	time.Sleep(1e9)
+
+	for i, city := range cities.cities {
+		if city != cityResult[i] {
+			t.Errorf("Expected %s and received %s \n", cityResult[i], city)
+		} else {
+			t.Logf("Capital : %s\n", city)
+		}
+	}
+}
+
+var bigStruct = []struct {
+	bigArray []int
+	result   int
+}{
+	{[]int{4, 8, 6, 9, 10, 13, 19, 41, 59, 81}, 250},
+	{[]int{4, 8, 6, 9, 10, 13}, 50},
+}
+
+/**
+Pattern 3 - this pattern passes a channel to a goroutine that will be used
+to return a value that can be used as output. The channel will be used after
+the routine to get the value.
+retrieving the value from the channel is a blocking operation as it waits on the
+channel to return a value.
+
+This is also called a semaphore pattern.
+*/
+
+func TestChannelAsOutputRoutine(t *testing.T) {
+	for _, array := range bigStruct {
+		ch := make(chan int)
+		go sum(array.bigArray, ch)
+		sum := <-ch // this is the blocking operation.
+		if sum != array.result {
+			t.Errorf("Expected result %d but got %d\n", array.result, sum)
+		} else {
+			t.Logf("The correct sum was calculated: %d\n", sum)
+		}
+	}
+}
+
+func TestSemaphorePattern(t *testing.T) {
+	s := make(semaphore, 5)
+	go Add(3, 5, s)
+	//time.Sleep(1e9)
+}
+
+/**
+This test will create a channel and then pass that channel to the next consumer
+this is called a channel factory pattern.
+*/
+
+func TestChannelFactoryPattern(t *testing.T) {
+	go suck(pump(5))
+	time.Sleep(1e9)
+}
