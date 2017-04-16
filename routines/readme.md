@@ -38,6 +38,8 @@ As mentioned earlier that go supports synchronization of the variables but does 
 
 channel is defined as :  var channel_name chan <data_type>  Uninitialized channels are defaulted to value nil. Only data of the type that that is defined can be passed to the channel but we can send multiple data using interface{} as the type. It is useful to create a channel of channels.
 
+The channels send and receive operations are atomic: they always complete without interruption.
+
 ```
 var ch chan string
 ch = make(chan string)
@@ -51,3 +53,14 @@ chOfChan := make (chan chan int)
 // make a channel of functions
 chOfFunc := chan func()
 ```
+
+#### Blocking of channels
+
+By default the channels are synchronous and unbuffered: which means that the sender and receiver but must be read to send and receive. **Both sides are blocked util both are read to send and receive**
+
+* A send operation is blocked until a receiver is available for the same channel. This is because a message sent on the channel is enough to fill it up and a the sender blocks until the receiver can consume the first message.
+* A receiver blocks on the channel util the sender is ready and there is a value to consume from the channel.
+
+Unbuffered channels make a perfect tool for synchronizing multiple go routines.
+
+Pattern - using an unbuffered channel as a communication link between two go routines. The pattern can be seen in the routine_basics_test.go
