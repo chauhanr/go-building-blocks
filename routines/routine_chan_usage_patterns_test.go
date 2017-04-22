@@ -1,13 +1,10 @@
 package routines
 
 import (
+	"fmt"
 	"testing"
 	"time"
 )
-
-type CityStruct struct {
-	cities []string
-}
 
 var cityResult = []string{"New Delhi", "Colombo", "Washington", "Timphu", "Seoul"}
 
@@ -59,8 +56,9 @@ func TestAsyncChannelsWithBufferPattern(t *testing.T) {
 	cities := CityStruct{}
 
 	/*
-		the following line can run in the main routine until
-		the channel size (buf) is >= len(cityResult)
+				the following line can run in the main routine until
+				the channel size (buf) is >= len(cityResult)
+		    as soon as this condition is violated the channel blocks and we get an error from go.
 	*/
 	sendData(ch, cityResult)
 	go getData(ch, &cities)
@@ -116,8 +114,22 @@ func TestSemaphorePattern(t *testing.T) {
 This test will create a channel and then pass that channel to the next consumer
 this is called a channel factory pattern.
 */
-
 func TestChannelFactoryPattern(t *testing.T) {
-	go suck(pump(5))
+	suck(pump(5))
 	time.Sleep(1e9)
+}
+
+// Test method to test out the pipe and filter pattern
+// thr problem with the pipe and filter pattern is that we have not learnt how to close channels the proper way.
+// therefore the example will return with an error that the channels were idel or were blocked.
+func TestPipeFilterPattern(t *testing.T) {
+	primes := sieve()
+	for {
+		prime, ok := <-primes
+		if !ok {
+			fmt.Println("primes channel has been closed.")
+			break
+		}
+		fmt.Println(prime)
+	}
 }

@@ -1,5 +1,8 @@
 package routines
 
+/**
+Empty interface is just used for signaling on a channel. this is the type of the semaphore channel that will be created.
+*/
 type Empty interface{}
 type semaphore chan Empty
 
