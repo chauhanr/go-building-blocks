@@ -251,3 +251,22 @@ The select pattern above is very close to how server backend process requests an
       return <-ch
     }
 ```
+
+**Recovering from routines which error out** - if you want to only recover from a panic or error in a routine and not kill other routines we need to use the recover() method in golang.
+
+```
+  func server(workChan <-chan *Work){
+      for work := range workChan{
+        go workSafely(work)
+      }    
+  }
+
+  func workSafely(work *Work){
+    defer func(){
+        if err := recover(); err != nil{
+          fmt.Printf("Error %s while executing worker %v:\n", err, work)
+        }
+    }
+    do(work)
+  }
+```
