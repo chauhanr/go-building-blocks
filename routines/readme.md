@@ -159,3 +159,47 @@ The pipes and filters pattern has to be used with two patterns of closing the ch
 ```
 
 if the close and ok operation then we will get deadlock errors where the channels are all waiting for each other.
+
+* **Switch statement with Channels** - there is a special switch statement syntax called select that works with the channels and go routines.
+
+```
+  for {
+      select{
+        case u, oku := <- chana:
+              if !oku {
+                break
+              }
+              // process the channel element u
+              process(u)
+
+        case v, okv := <- chanb:
+                  if !okv {
+                    break
+                  }
+                  // process the channel element v
+                  process(v)
+        default: // this is optional if present will cause the select to the non blocking.
+      }
+  }
+```
+
+Select stops once a break or return is encountered in one of its cases. Here is the behavior of select statement in various scenarios.
+  * if all channels are blocked, it waits until one can processed
+  * if multiple can proceed then select statement will choose one at random.
+  * when none of the cases or channels can proceed and default clause is present, then default is executed: the default is always runnable. A default clause ensures that the select statement is non blocking.
+
+The select pattern above is very close to how server backend process requests and here is a code that can mimic server process.
+```
+   func backend(){
+      for {
+          select {
+            case cmd := <-ch1
+                   // handle command on channel 1
+            case cmd := <-ch2
+                  // handle command on channel 2
+            case cmd := <-chStop
+                  // handle server stop command. 
+          }
+      }
+   }
+```
