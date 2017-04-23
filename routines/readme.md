@@ -123,7 +123,7 @@ suck(pump(9))
 
 ```
 
-* **Channel Iterator Pattern** - If we have a container that has some items in it that need to be processed by a consumer but we want this processing to happen in a separate thread we can do so by following the iterator pattern here:
+* **Pattern 6: Channel Iterator Pattern** - If we have a container that has some items in it that need to be processed by a consumer but we want this processing to happen in a separate thread we can do so by following the iterator pattern here:
 
 ```
   func (c *container) Iterator() <- chan {
@@ -145,7 +145,7 @@ suck(pump(9))
 
 ```
 
-* **Pipes and Filter Pattern** - pipes and filter pattern is also a very popular and heavily popular pattern. Here two channels work in tandem one is the in channel and the other is out channel. The generateNumbers(), filter() and sieve() functions in the routines_basics.go file are examples of using pipes and filters with channels.
+* **Pattern 7: Pipes and Filter Pattern** - pipes and filter pattern is also a very popular and heavily popular pattern. Here two channels work in tandem one is the in channel and the other is out channel. The generateNumbers(), filter() and sieve() functions in the routines_basics.go file are examples of using pipes and filters with channels.
 
 The pipes and filters pattern has to be used with two patterns of closing the channel when it is no longer being used. this can be done by using the close() function in go as well as the boolean return value that a channel returns.
 
@@ -160,7 +160,7 @@ The pipes and filters pattern has to be used with two patterns of closing the ch
 
 if the close and ok operation then we will get deadlock errors where the channels are all waiting for each other.
 
-* **Switch statement with Channels** - there is a special switch statement syntax called select that works with the channels and go routines.
+* **Pattern 8: Switch statement with Channels** - there is a special switch statement syntax called select that works with the channels and go routines.
 
 ```
   for {
@@ -198,8 +198,56 @@ The select pattern above is very close to how server backend process requests an
             case cmd := <-ch2
                   // handle command on channel 2
             case cmd := <-chStop
-                  // handle server stop command. 
+                  // handle server stop command.
           }
       }
    }
+```
+
+* **Pattern 9:Timeout patterns** There are a few patterns that can help with timeouts when dealing with go routines.
+    * Simple timeout pattern - have a lambda go routine that has a sleep for the time out period and then sending signal on channel.
+
+```
+  timeoutChannel := make(chan bool, 1)
+  go func(){
+    time.Sleep(1e9)
+    timeout <- true
+  }()
+
+  // then the timeout can be handled by the select statement.
+  select{
+    case <-ch:
+        // read from the ch has occurred
+    case <-timeout:
+       break
+  }
+```
+
+    * Abandon the sync calls that run too long.
+```
+  ch := make(chan error, 1)
+  go func(){ ch<- client.Call(args, &reply)}()
+
+  select{
+    case resp := <-ch:
+        // use the resp and reply.
+    case <-time.After(timeoutN):
+        break
+  }
+```
+      * Choose the function that returns the value the fastest. - in the function given below we have connections to multiple databases and we need to run the query on each one of them and return the query result that finishes first.
+
+```
+    func Query(conns []Conn, query string) Result{
+      ch := make(chan Result, 1)
+      for _, conn := range conns{
+        go func(c Conn){
+          select{
+              case ch <- c.DoQuery(query)
+              default:
+          }
+        }(conn)
+      }
+      return <-ch
+    }
 ```
