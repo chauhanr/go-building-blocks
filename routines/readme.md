@@ -271,53 +271,25 @@ The select pattern above is very close to how server backend process requests an
   }
 ```
 
-## Tasks and Worker Pattern
-One of popular patterns is the worker tasks pattern where we have a pool of tasks and a set of workers that need to work on the tasks. We need to have to protect the pool of tasks from the concurrency issues.
+**Implementing Futures**
+The concept of the future is useful when you know you need to calculate a value before using it and the calculation is intensive so we need to run it on a different processor and it is used once prepared.
 
-There are two pattern that can be used to handle the concurrency issues.
+An example is when we are doing matrix calculations and we need to handle calculations on the matrix it is better to put the intensive calculation on a new processor and then use the result. The best way to do this is to hold one to a future that will be used once the canclations have been done. Use the channels pattern to implement this pattern.
+
+The use of channels makes the implementation of futures very easy. 
 
 ```
-// Pattern1 using the mutex pattern
-
-type Task struct{
-    // implementation of task
+func InverseProduct(a matrix, b matrix){
+  aFuture := InverseFuture(a)
+  bFuture := InverseFuture(b)
+  aInv := <- aFuture
+  bInv := <- bFuture
+  return Product(aInv, bInv)
 }
 
-type Pool struct{
-    Mu sync.Mutex
-    Tasks []Task
-}
-
-func Worker(pool *Pool){
-    pool.Mu.Lock()
-    // start critical section
-    task := pool.Tasks[0]
-    pool.Tasks = pool.Tasks[1:]
-    // end the critical section
-    pool.Mu.Unlock()
-
-    process(task)
+func InverseFuture(a matrix) chan matrix{
+  future := make(chan matrix)
+  go func (){ future <- Inverse(a)}()
+  return future
 }
 ```
-
-```
-// Pattern 2 using the channel
-  pending , done := make(chan *Task), make(chan *Task)
-
-  go sendWork(pending)  // method will add tasks
-  for i :=0 ; i<N; i++{
-      go Worker(pending, done)
-  }
-  consume(done)
-```
-Although the channels and pipe patterns in go lang are highly recommended for concurrent programming there are use cases of using Mutexes as well.
-
-* Mutex can be used when
-    * caching information in a shared data structure
-    * holding information which represents status of running application.
-
-
-* Use cases for channels
-    * communicating async results
-    * distributing units of work
-    * pass ownership of data
