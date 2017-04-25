@@ -276,7 +276,7 @@ The concept of the future is useful when you know you need to calculate a value 
 
 An example is when we are doing matrix calculations and we need to handle calculations on the matrix it is better to put the intensive calculation on a new processor and then use the result. The best way to do this is to hold one to a future that will be used once the canclations have been done. Use the channels pattern to implement this pattern.
 
-The use of channels makes the implementation of futures very easy. 
+The use of channels makes the implementation of futures very easy.
 
 ```
 func InverseProduct(a matrix, b matrix){
@@ -293,3 +293,104 @@ func InverseFuture(a matrix) chan matrix{
   return future
 }
 ```
+
+## Processing Patterns
+
+* **Pattern 1: Limiting concurrent requests being processed** - this pattern is easily done using a buffered channel with fixed capacity. The channel will keep taking a request until the channel size is reached and then blocks on all requests until earlier requests have not been fulfilled.
+
+```
+const(
+  AvailableMemory = 10 << 20
+  AverageRequestMemory = 10 << 10 // 10 kB
+  MAXREQ = AvailableMemory/AverageRequestMemory
+)
+
+var sem = make(chan int, MAXREQ)
+
+type Request struct{
+  ...
+}
+
+func Proces(r *Request){
+  // do something useful
+}
+
+func handle(r *Request){
+  process(r)
+  // signal that a process is done and make an empty space
+  // on the channel semaphore
+  <-sem
+}
+
+func Server(queue chan *Request){
+  for {
+    sem <- 1
+    // block one slot on the channel semaphore
+    // the above operation blocks when the request reach 1000
+    request := <- queue
+    go handle(request)
+  }
+}
+```  
+The semaphore pattern used here can also be used to keep the number of parallel processes equal to the number of cores the machine has. This will allow for only the processes equal to the number of cores to run in parallel.
+
+* **Pattern 2: Processing larger amount of data serially but parallely**
+
+If we have a large chunck of data that we need to process and we can break them into chunks. we could parallely process them using the chaining process.
+
+```
+func SerialProcessData (in <-chan *Data, out <- chan *Data){
+  preOut := make(chan *Data, 100)
+  stepAOut := make(chan *Data, 100)
+  stepBOut := make(chan *Data, 100)
+  stepCOut := make(chan *Data, 100)
+    go Preprocess(in, preOut)
+    go ProcessStepA(preprocessData, stepAOut)
+    go ProcessStepB(stepAOut, stepBOut)
+    go ProcessStepC(stepBOut,stepCOut)
+    go ProcessStepOut(stepCOut, out)
+
+}
+```
+
+## Leaky Bucket Algorithm
+
+In a scenario where we have a client process and a server process both are running on infinite loops and the client is reading data from a source like a network and pushing the data to the server side.
+
+The issue in this case will be that the client and server will use buffers to read data. We want to keep the buffer numbers in check and therefore will use a channel with a limit. When the client sees that all the buffers are taken up it will drop a bucket(buffer).
+
+```
+var serverChan = make(chan *Buffer)
+var freelist = make(chan *Buffer,100)
+
+func client(){
+  for {
+    var b *Buffer
+     select {
+       case b = <-freelist:
+            // do nothing
+       default :
+          // add a new buffer
+          b = new(Buffer)
+     }
+       loadInto(b)
+       serverChan <- b
+  }
+}
+
+func server(){
+  for {
+    b := <- serverChan
+    process(b)
+    // reuse buffer if there is room
+    select{
+      case freelist <- b:
+          // Reuse buffer if free slot present
+      default:
+        // free list is full just carry on: buffer is dropped.
+    }
+ }
+}
+
+```
+Because we let og of the buffer this algorithm is called leaky bucket. The buffer in this case is garbage collected.

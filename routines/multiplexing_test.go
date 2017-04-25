@@ -24,3 +24,20 @@ func TestMultiplexServer(t *testing.T) {
 	}
 	quit <- true
 }
+
+func f(left, right chan int) {
+	left <- 1 + <-right
+}
+
+// this test method does nto have file to test.
+func TestGoRoutineChaining(t *testing.T) {
+	leftmost := make(chan int)
+	var left, right chan int = nil, leftmost
+	for i := 0; i < 1000; i++ {
+		left, right = right, make(chan int)
+		go f(left, right)
+	}
+	right <- 0
+	x := <-leftmost
+	t.Logf("The leftmost value in chain: %d ", x)
+}
