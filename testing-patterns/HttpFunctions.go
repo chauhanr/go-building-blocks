@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 )
@@ -50,4 +51,9 @@ func (s *Server) poll() {
 	s.mu.Lock()
 	s.yes = true
 	s.mu.Unlock()
+}
+
+func Crasher() {
+	fmt.Println("Going down in flames")
+	os.Exit(1)
 }

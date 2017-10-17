@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"os/exec"
 	"strings"
 	"testing"
 	"time"
@@ -99,4 +101,19 @@ func TestResponseRecorder(t *testing.T) {
 	w := httptest.NewRecorder()
 	handler(w, req)
 	fmt.Printf("%d - %s", w.Code, w.Body.String())
+}
+
+// Testing the sub process
+func TestCrasher(t *testing.T) {
+	if os.Getenv("BE_CRASHER") == "1" {
+		Crasher()
+		return
+	}
+	cmd := exec.Command(os.Args[0], "-test.run=TestCrasher")
+	cmd.Env = append(os.Environ(), "BE_CRASHER=1")
+	err := cmd.Run()
+	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
+		return
+	}
+	t.Fatalf("process ran with error %v, want exit status 1", err)
 }
