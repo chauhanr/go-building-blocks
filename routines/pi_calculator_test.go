@@ -21,10 +21,13 @@ func TestPiCalcualtor(t *testing.T) {
 
 func calculatePi(interval int) float64 {
 	var pi float64
+
 	pi = 0.0
 	channel := make(chan float64)
 	go generateSeriesSeq(channel)
 	go calculateResult(channel, &pi)
+
 	time.Sleep(1 * time.Second)
+
 	return pi
 }
