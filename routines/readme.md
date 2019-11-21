@@ -56,16 +56,16 @@ chOfFunc := chan func()
 
 #### Blocking of channels
 
-By default the channels are synchronous and unbuffered: which means that the sender and receiver but must be read to send and receive. **Both sides are blocked util both are read to send and receive**
+By default the channels are synchronous and unbuffered: which means that the sender and receiver but must be read to send and receive. **Both sides are blocked until both are read to send and receive**
 
 * A send operation is blocked until a receiver is available for the same channel. This is because a message sent on the channel is enough to fill it up and a the sender blocks until the receiver can consume the first message.
-* A receiver blocks on the channel util the sender is ready and there is a value to consume from the channel.
+* A receiver blocks on the channel until the sender is ready and there is a value to consume from the channel.
 
 Unbuffered channels make a perfect tool for synchronizing multiple go routines.
 
 * **Pattern 1: Unbuffered Channel Go Routine Pattern** - using an unbuffered channel as a communication link between two go routines the sender immediately blocks as soon as the first message is sent on the channel. The pattern can be seen in the routine_chan_usage_patterns_test.go under the TestUnbufferedChannelPattern test case.
 
-* **Pattern 2: Buffered Synchronous Channel Pattern** - In the buffered asynchronous pattern of communication channel has a buffer size and will accept value from the sender in a non blocking mode till the buffer is full. As soon as the buffer fills up the sender is blocked. This pattern is often used to make the first pattern more scalable.This pattern can be seen in the TestAsyncChannelsWithBufferPattern in the routine_chan_usage_patterns_test.go test file.
+* **Pattern 2: Buffered Synchronous Channel Pattern** - In the buffered asynchronous pattern of communication channel has a buffer size and will accept value from the sender in a non blocking mode till the buffer is full. As soon as the buffer fills up the sender is blocked. This pattern is often used to make the first pattern. This pattern can be seen in the TestAsyncChannelsWithBufferPattern in the routine_chan_usage_patterns_test.go test file.
 
 * **Pattern 3: [Semaphore] Using channels as output pipe** - This pattern is used to put a algorithm that is processing intensive into its own routine and passing a channel to it. the output of the function is returned back to the calling method using a channel. The channel is then read from the calling method which blocks till the routine returns. The pattern can be seen in the TestChannelAsOutputRoutine test case in the routine_chan_usage_patterns_test.go file. This Pattern is a semaphore pattern.  
 
@@ -274,7 +274,7 @@ The select pattern above is very close to how server backend process requests an
 **Implementing Futures**
 The concept of the future is useful when you know you need to calculate a value before using it and the calculation is intensive so we need to run it on a different processor and it is used once prepared.
 
-An example is when we are doing matrix calculations and we need to handle calculations on the matrix it is better to put the intensive calculation on a new processor and then use the result. The best way to do this is to hold one to a future that will be used once the canclations have been done. Use the channels pattern to implement this pattern.
+An example is when we are doing matrix calculations and we need to handle calculations on the matrix it is better to put the intensive calculation on a new processor and then use the result. The best way to do this is to hold one to a future that will be used once the cancelations have been done. Use the channels pattern to implement this pattern.
 
 The use of channels makes the implementation of futures very easy.
 
@@ -334,9 +334,9 @@ func Server(queue chan *Request){
 ```  
 The semaphore pattern used here can also be used to keep the number of parallel processes equal to the number of cores the machine has. This will allow for only the processes equal to the number of cores to run in parallel.
 
-* **Pattern 2: Processing larger amount of data serially but parallely**
+* **Pattern 2: Processing larger amount of data serially but parallelly**
 
-If we have a large chunck of data that we need to process and we can break them into chunks. we could parallely process them using the chaining process.
+If we have a large chunk of data that we need to process and we can break them into chunks. we could parallelly process them using the chaining process.
 
 ```
 func SerialProcessData (in <-chan *Data, out <- chan *Data){
