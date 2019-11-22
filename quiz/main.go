@@ -1,13 +1,14 @@
 package main
 
 import (
-	"bufio"
 	"encoding/csv"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"runtime"
 	"strings"
+	"time"
 )
 
 var limit int
@@ -34,8 +35,12 @@ func main() {
 		return
 	}
 	//fmt.Printf("records %v\n", elements)
-	s := AskQuestions(elements)
-	fmt.Printf("Total Score for Quiz: %d\n", s)
+	s, err := AskQuestions(elements)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Printf("\nTotal Score for Quiz: %d / %d \n", s, limit)
 }
 
 func ReadProblemCsv(path string) ([]QElement, error) {
@@ -61,14 +66,17 @@ func ReadProblemCsv(path string) ([]QElement, error) {
 }
 
 /*AskQuestions will ask the questions using go routine and take care of the timeuse as well*/
-func AskQuestions(qSet []QElement) int {
+func AskQuestions(qSet []QElement) (int, error) {
 	score := 0
 	done := make(chan interface{})
 	defer close(done)
 	for s := range ask(done, qRepeat(done, qSet)) {
+		if s == -1 {
+			return -1, errors.New("quiz timed out. exiting..")
+		}
 		score = score + s
 	}
-	return score
+	return score, nil
 }
 
 func qRepeat(done <-chan interface{}, ques []QElement) <-chan QElement {
@@ -90,7 +98,8 @@ func qRepeat(done <-chan interface{}, ques []QElement) <-chan QElement {
 
 func ask(done <-chan interface{}, qs <-chan QElement) <-chan int {
 	qscore := make(chan int)
-	reader := bufio.NewReader(os.Stdin)
+	//reader := bufio.NewReader(os.Stdin)
+	timer := time.NewTimer(time.Duration(timeout) * time.Second)
 
 	go func() {
 		defer close(qscore)
@@ -99,19 +108,29 @@ func ask(done <-chan interface{}, qs <-chan QElement) <-chan int {
 			case <-done:
 				return
 			case q := <-qs:
-				// now the question needs to be asked.
-				fmt.Printf("\n%d. %s: ", q.Id, q.Question)
-				text, _ := reader.ReadString('\n')
-				if runtime.GOOS == "windows" {
-					text = strings.TrimRight(text, "\r\n")
-				} else {
-					text = strings.TrimRight(text, "\n")
-				}
-				if strings.Compare(text, q.Answer) == 0 {
-					qscore <- 1
-				} else {
-					//fmt.Printf("Answer %s is wrong the answer must be %s\n", text, q.Answer)
-					qscore <- 0
+				answerCh := make(chan string)
+				go func() {
+					fmt.Printf("\n%d. %s: ", q.Id, q.Question)
+					var ans string
+					fmt.Scanf("%s\n", &ans)
+					answerCh <- ans
+				}()
+				select {
+				case <-timer.C:
+					qscore <- (-1)
+					return
+				case text := <-answerCh:
+					if runtime.GOOS == "windows" {
+						text = strings.TrimRight(text, "\r\n")
+					} else {
+						text = strings.TrimRight(text, "\n")
+					}
+					if strings.Compare(text, q.Answer) == 0 {
+						qscore <- 1
+					} else {
+						//fmt.Printf("Answer %s is wrong the answer must be %s\n", text, q.Answer)
+						qscore <- 0
+					}
 				}
 			}
 		}
