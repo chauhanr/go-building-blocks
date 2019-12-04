@@ -15,6 +15,7 @@ var limit int
 var timeout int
 var csvPath string
 
+/*QElement was placeholder for question capturing*/
 type QElement struct {
 	Id       int
 	Question string
@@ -43,6 +44,7 @@ func main() {
 	fmt.Printf("\nTotal Score for Quiz: %d / %d \n", s, limit)
 }
 
+/*ReadProblemCsv will take a file and read is as csv*/
 func ReadProblemCsv(path string) ([]QElement, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -72,7 +74,7 @@ func AskQuestions(qSet []QElement) (int, error) {
 	defer close(done)
 	for s := range ask(done, qRepeat(done, qSet)) {
 		if s == -1 {
-			return -1, errors.New("quiz timed out. exiting..")
+			return -1, errors.New("quiz timed out. exiting")
 		}
 		score = score + s
 	}
