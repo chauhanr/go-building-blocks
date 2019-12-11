@@ -20,15 +20,16 @@ func parseYaml(yamlb []byte) (UrlMap, error) {
 	urlMapping := UrlMap{}
 	err := yaml.Unmarshal(yamlb, &urlMapping)
 	if err != nil {
+		fmt.Printf("Error parsing yaml %s\n", err)
 		return UrlMap{}, err
 	}
 	return urlMapping, nil
 }
 
 var internalMap = map[string]string{
-	"/twitter":  "wwww.twitter",
-	"/facebook": "www.facebook.com",
-	"/eco":      "www.economist.com",
+	"/twitter":  "http://www.twitter.com",
+	"/facebook": "http://www.facebook.com",
+	"/eco":      "http://www.economist.com",
 }
 
 func buildMap(parsedYaml map[string]string) (map[string]string, error) {
@@ -39,15 +40,16 @@ func buildMap(parsedYaml map[string]string) (map[string]string, error) {
 }
 
 func MapHandler(pathMap map[string]string, fallback http.Handler) http.HandlerFunc {
+	fmt.Printf("Map Content: %v\n", pathMap)
 	return func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
 		fmt.Printf("Path: %s\n", path)
 		if dest, ok := pathMap[path]; ok {
+			fmt.Printf("Redicrecting to: %s\n", dest)
 			http.Redirect(w, r, dest, http.StatusFound)
 			return
 		}
 		fallback.ServeHTTP(w, r)
-
 	}
 }
 

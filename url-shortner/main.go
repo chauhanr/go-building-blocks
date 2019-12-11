@@ -10,9 +10,9 @@ import (
 func main() {
 	mux := defaultMux()
 	yaml := `UrlMappings:
-        "/gogl": "www.google.com"
-        "/yah": "www.yahoo.com"
-        "/hcl": "www.hcl.com"`
+  "/gogl": "http://www.google.com"
+  "/yah": "http://www.yahoo.com"
+  "/hcl": "http://www.hcl.com"`
 
 	yHandler, err := handlers.YamlHandler([]byte(yaml), mux)
 	if err != nil {
