@@ -1,0 +1,4 @@
+UrlMappings:
+        "/gogl": "www.google.com"
+        "/yah": "www.yahoo.com"
+        "/hcl": "www.hcl.com"
